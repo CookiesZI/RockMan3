@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BoltonNutton : MonoBehaviour
 {
+    Animator ab;
+
     public float speed;
     public float lineOfSite;
     private Transform player;
@@ -11,6 +13,7 @@ public class BoltonNutton : MonoBehaviour
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
+        ab = GetComponent<Animator>();
     }
 
     void Update()
@@ -28,11 +31,12 @@ public class BoltonNutton : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, lineOfSite);
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnCollisionEnter(Collision collision)
     {
-        if (other.gameObject.TryGetComponent<PlayerHealth>(out PlayerHealth playercomponant))
+        if (collision.gameObject.TryGetComponent<PlayerHealth>(out PlayerHealth playercomponant))
         {
             playercomponant.TakeDamage(1);
+            ab.SetTrigger("bAttack");
         }
     }
 }

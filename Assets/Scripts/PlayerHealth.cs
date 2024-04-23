@@ -4,25 +4,31 @@ using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
+    Animator ab;
+
     public int maxHealth = 12;
     public int currenthealth;
-    public GameObject player;
-    public float kbForce;
-    public GameObject checkpoint;
 
+    [SerializeField] HealthBar healthBar;
     private void Start()
     {
         currenthealth = maxHealth;
+        healthBar.UpdateHealthBar(currenthealth, maxHealth);
+    }
+
+    private void Awake()
+    {
+        healthBar = GetComponent<HealthBar>();
     }
 
     public void TakeDamage(int amount)
     {
         currenthealth -= amount;
-        Knockback();
+        healthBar.UpdateHealthBar(currenthealth, maxHealth);
 
         if(currenthealth <= 0)
         {
-            player.transform.position = checkpoint.transform.position;
+            ab.SetTrigger("Trigger");
         }
     }
 
@@ -34,10 +40,5 @@ public class PlayerHealth : MonoBehaviour
         {
             currenthealth = maxHealth;
         }
-    }
-
-    void Knockback()
-    {
-        player.transform.position += transform.right * Time.deltaTime * kbForce;
     }
 }

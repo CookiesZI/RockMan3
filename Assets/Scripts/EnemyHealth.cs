@@ -21,8 +21,7 @@ public class EnemyHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            ab.SetTrigger("isDead");
-            Invoke("Dead",2);
+            Destroy(gameObject);
         }
     }
 

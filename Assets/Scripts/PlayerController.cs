@@ -5,21 +5,29 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    
     Rigidbody rb;
     Animator ab;
-    [SerializeField] float speed;
 
-    float inputHorizontal;
     bool facingRight;
+
+    //movement
+    public float speed;
+    
+    //jumping
     bool grounded = false;
     Collider[] groundCollisions;
     float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
     public Transform groundCheck;
-    [SerializeField] float jumpForce;
+    public float jumpHeight;
 
+    //Sliding
+    public GameObject normalHitbox;
+    public GameObject slideHitbox;
+
+    //misc
     public Transform firepoint;
-    public GameObject bulletPrefab;
 
     void Start()
     {
@@ -28,18 +36,48 @@ public class PlayerController : MonoBehaviour
         facingRight = true;
     }
 
+    
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.J))
+        if (Input.GetKeyDown(KeyCode.C))
         {
-            Shooting();
+            StartSlide();
+            ab.SetBool("isSliding", true);
+        }
+        if (Input.GetKeyUp(KeyCode.C))
+        {
+            StopSlide();
+            ab.SetBool("isSliding", false);
         }
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        Jump();
-        Move();
+        //Jumping
+        float jump = Input.GetAxis("Jump");
+        ab.SetFloat("verticalSpeed", Mathf.Abs(jump));
+        if (grounded && jump > 0)
+        {
+            grounded = false;
+            rb.AddForce(new Vector3(0, jumpHeight, 0));
+        }
+        groundCollisions = Physics.OverlapSphere(groundCheck.position, groundCheckRadius, groundLayer);
+        if (groundCollisions.Length>0) grounded = true;
+        else grounded = false;
+        //Moving
+        float move = Input.GetAxis("Horizontal");
+        ab.SetFloat("Speed", Mathf.Abs(move));
+        rb.velocity = new Vector3(move * speed, rb.velocity.y, 0);
+        if (move > 0 && !facingRight)
+        {
+            Flip();
+            firepoint.localRotation = Quaternion.identity;
+        }
+        else if (move < 0 && facingRight)
+        {
+            Flip();
+            firepoint.localRotation = Quaternion.Euler(0, 180f, 0);
+        }
     }
 
     void Flip()
@@ -49,41 +87,14 @@ public class PlayerController : MonoBehaviour
         theScale.z *= -1;
         transform.localScale = theScale;
     }
-
-    void Move()
+    void StartSlide()
     {
-        inputHorizontal = Input.GetAxis("Horizontal");
-        ab.SetFloat("Speed", Mathf.Abs(inputHorizontal));
-        if (inputHorizontal != 0)
-        {
-            rb.velocity = new Vector3(inputHorizontal * speed, rb.velocity.y, 0);
-        }
-        if (inputHorizontal > 0 && !facingRight)
-        {
-            Flip();
-        }
-        else if (inputHorizontal < 0 && !facingRight)
-        {
-            Flip();
-        }
+        normalHitbox.SetActive(false);
+        slideHitbox.SetActive(true);
     }
-
-    void Jump()
+    void StopSlide()
     {
-        if (grounded && Input.GetAxis("Jump") > 0)
-        {
-            grounded = false;
-            rb.AddForce(new Vector3(0, jumpForce, 0));
-        }
-        groundCollisions = Physics.OverlapSphere(groundCheck.position, groundCheckRadius, groundLayer);
-        if (groundCollisions.Length > 0) grounded = true;
-        else grounded = false;
-
+        normalHitbox.SetActive(true);
+        slideHitbox.SetActive(false);
     }
-
-    void Shooting()
-    {
-        GameObject bullets = Instantiate(bulletPrefab, firepoint.transform.position, firepoint.transform.rotation);
-    }
-
 }
